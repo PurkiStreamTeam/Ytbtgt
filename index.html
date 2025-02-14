@@ -1,0 +1,59 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom YouTube Player</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script> </head>
+
+<body>
+    <h1>Watch YouTube Videos with Friends</h1>
+    <input type="text" id="videoUrl" placeholder="Enter YouTube URL" />
+    <button onclick="loadVideo()">Load Video</button>
+    <div id="player"></div>
+
+    <script>
+        let player;
+        const socket = io(); // Connect to the WebSocket server
+
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '390',
+                width: '640',
+                events: {
+                    'onReady': onPlayerReady
+                }
+            });
+        }
+
+        function loadVideo() {
+            const url = document.getElementById('videoUrl').value;
+            const videoId = url.split('v=')[1].split('&')[0]; // Extract video ID
+            player.loadVideoById(videoId);
+        }
+
+        function onPlayerReady(event) {
+            // Player is ready
+            socket.on('play', () => {
+                player.playVideo();
+            });
+
+            socket.on('pause', () => {
+                player.pauseVideo();
+            });
+        }
+
+        function playVideo() {
+            player.playVideo();
+            socket.emit('play'); // Notify others to play
+        }
+
+        function pauseVideo() {
+            player.pauseVideo();
+            socket.emit('pause'); // Notify others to pause
+        }
+    </script>
+</body>
+
+</html>
